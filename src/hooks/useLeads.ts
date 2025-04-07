@@ -29,6 +29,34 @@ export function useLeads(organizationId?: string, branchId?: string) {
     };
   }, [queryClient]);
 
+  // Suscripción en tiempo real para leads
+  useEffect(() => {
+    if (!organizationId || !branchId) return;
+
+    // Suscribirse a cambios en la tabla leads
+    const subscription = supabase
+      .channel('leads_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // Escuchar todos los eventos (INSERT, UPDATE, DELETE)
+          schema: 'public',
+          table: 'leads',
+          filter: `organization_id=eq.${organizationId} AND branch_id=eq.${branchId}`,
+        },
+        (payload) => {
+          // Actualizar la caché de React Query cuando hay cambios
+          queryClient.invalidateQueries({ queryKey: ['leads', organizationId, branchId] });
+        }
+      )
+      .subscribe();
+
+    // Limpiar la suscripción cuando el componente se desmonta
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [organizationId, branchId, queryClient]);
+
   const query: UseQueryResult<Lead[], Error> = useQuery({
     queryKey: ['leads', organizationId, branchId],
     queryFn: async (): Promise<Lead[]> => {

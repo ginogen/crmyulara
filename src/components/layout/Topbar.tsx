@@ -2,9 +2,6 @@ import { useState, Fragment } from 'react';
 import { BellIcon, MagnifyingGlassIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { Menu, Transition } from '@headlessui/react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useContacts } from '@/hooks/useContacts';
-import { formatPhoneNumber } from '@/lib/utils/strings';
-import { Contact } from '@/types/supabase';
 
 interface Organization {
   id: string;
@@ -19,17 +16,16 @@ interface Branch {
 
 interface TopbarProps {
   notifications?: number;
-  onContactSelect?: (contact: Contact) => void;
+  currentOrganization?: string;
+  currentBranch?: string;
 }
 
-export const Topbar = ({ notifications = 0, onContactSelect }: TopbarProps) => {
+export const Topbar = ({ notifications = 0 }: TopbarProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const { contacts } = useContacts();
   const { 
     user, 
     userRole, 
-    currentOrganization, 
+    currentOrganization,
     currentBranch,
     organizations,
     branches,
@@ -49,15 +45,6 @@ export const Topbar = ({ notifications = 0, onContactSelect }: TopbarProps) => {
   const handleBranchChange = (selectedBranch: Branch) => {
     setCurrentBranch(selectedBranch);
   };
-
-  const filteredContacts = contacts.filter((contact) => {
-    const searchTerm = searchQuery.toLowerCase();
-    return (
-      contact.full_name.toLowerCase().includes(searchTerm) ||
-      (contact.email && contact.email.toLowerCase().includes(searchTerm)) ||
-      (contact.phone && contact.phone.toLowerCase().includes(searchTerm))
-    );
-  }).slice(0, 5); // Limitamos a 5 resultados
 
   const canChangeOrganization = userRole === 'super_admin';
   const canChangeBranch = userRole === 'super_admin' || userRole === 'org_admin';
@@ -173,45 +160,10 @@ export const Topbar = ({ notifications = 0, onContactSelect }: TopbarProps) => {
             <input
               type="text"
               className="h-8 block w-full pl-8 pr-3 text-xs border-0 bg-white/50 backdrop-blur-sm text-gray-900 rounded-lg shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-[#34495E] hover:bg-white/80 transition-all duration-200"
-              placeholder="Buscar contactos por nombre, email o teléfono..."
+              placeholder="Buscar contactos o leads..."
               value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setIsSearching(e.target.value.length > 0);
-              }}
-              onBlur={() => {
-                // Pequeño delay para permitir que se detecte el clic en los resultados
-                setTimeout(() => setIsSearching(false), 200);
-              }}
-              onFocus={() => setIsSearching(searchQuery.length > 0)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
-            
-            {/* Resultados de búsqueda */}
-            {isSearching && filteredContacts.length > 0 && (
-              <div className="absolute left-0 right-0 mt-1 bg-white rounded-lg shadow-lg ring-1 ring-black ring-opacity-5 max-h-60 overflow-auto z-50">
-                {filteredContacts.map((contact) => (
-                  <button
-                    key={contact.id}
-                    className="w-full px-4 py-2 text-left hover:bg-gray-50 focus:outline-none focus:bg-gray-50"
-                    onClick={() => {
-                      if (onContactSelect) {
-                        onContactSelect(contact);
-                      }
-                      setSearchQuery('');
-                      setIsSearching(false);
-                    }}
-                  >
-                    <div className="text-sm font-medium text-gray-900">
-                      {contact.full_name}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {contact.email && <span className="mr-2">{contact.email}</span>}
-                      {contact.phone && <span>{formatPhoneNumber(contact.phone)}</span>}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
         </div>
 

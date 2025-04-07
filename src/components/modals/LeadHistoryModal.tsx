@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { formatDate } from '@/lib/utils/dates';
+import { formatDateTime } from '@/lib/utils/dates';
 import {
   Dialog,
   DialogContent,
@@ -105,7 +105,7 @@ export function LeadHistoryModal({ isOpen, onClose, leadId }: LeadHistoryModalPr
               {history.map((entry) => (
                 <TableRow key={entry.id}>
                   <TableCell className="font-medium">
-                    {formatDate(entry.created_at, true)}
+                    {formatDateTime(entry.created_at)}
                   </TableCell>
                   <TableCell>{entry.action}</TableCell>
                   <TableCell>{entry.user?.full_name}</TableCell>

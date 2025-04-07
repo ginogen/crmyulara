@@ -61,7 +61,7 @@ export default function AdminPage() {
         name: user?.full_name || '',
       }}
       organization={currentOrganization ? {
-        name: currentOrganization.custom_name
+        name: currentOrganization.name
       } : undefined}
       branch={currentBranch ? {
         name: currentBranch.name

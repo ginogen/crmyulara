@@ -34,7 +34,7 @@ export function SendEmailModal({ isOpen, onClose, selectedContacts }: SendEmailM
         to: selectedContacts.map(contact => contact.email),
         subject,
         body,
-        scheduleDate,
+        scheduledFor: scheduleDate,
       });
       onClose();
     } catch (error) {

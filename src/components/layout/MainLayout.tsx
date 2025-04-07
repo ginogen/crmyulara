@@ -1,8 +1,6 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { Topbar } from './Topbar';
-import { ContactManagementModal } from '@/components/modals/ContactManagementModal';
-import { Contact } from '@/types/supabase';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -28,14 +26,6 @@ export const MainLayout = ({
   branch,
   notifications,
 }: MainLayoutProps) => {
-  const [selectedContact, setSelectedContact] = useState<Contact | undefined>();
-  const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
-
-  const handleContactSelect = (contact: Contact) => {
-    setSelectedContact(contact);
-    setIsManagementModalOpen(true);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200">
       <Sidebar
@@ -48,7 +38,6 @@ export const MainLayout = ({
         <div className="sticky top-0 z-10 backdrop-blur-sm bg-white/70 border-b border-gray-200/80 shadow-sm">
           <Topbar
             notifications={notifications}
-            onContactSelect={handleContactSelect}
           />
         </div>
         <main className="p-4">
@@ -57,15 +46,6 @@ export const MainLayout = ({
           </div>
         </main>
       </div>
-
-      <ContactManagementModal
-        isOpen={isManagementModalOpen}
-        onClose={() => {
-          setIsManagementModalOpen(false);
-          setSelectedContact(undefined);
-        }}
-        contact={selectedContact}
-      />
     </div>
   );
 }; 

@@ -14,7 +14,7 @@ interface Branch {
   province: string;
   phone: string;
   email: string;
-  manager_id: string;
+  manager_id: string | null;
   organization_id: string;
 }
 

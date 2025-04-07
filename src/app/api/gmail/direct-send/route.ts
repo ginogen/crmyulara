@@ -4,6 +4,9 @@ import { createClient } from '@/lib/supabase/server';
 import { google } from 'googleapis';
 import { getServerSupabase } from '@/lib/supabase/config';
 
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 export async function OPTIONS() {
   return new NextResponse(null, {
     status: 204,

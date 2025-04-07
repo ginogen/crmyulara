@@ -9,6 +9,7 @@ ALTER TABLE budgets
 
 -- Agregar nuevas columnas
 ALTER TABLE budgets
+  ADD COLUMN contact_id UUID REFERENCES contacts(id) ON DELETE CASCADE,
   ADD COLUMN rates text,
   ADD COLUMN responsible text,
   ADD COLUMN slug text,

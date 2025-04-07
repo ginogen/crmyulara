@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/client';
 import { google } from 'googleapis';
 
+export const runtime = 'edge';
+export const dynamic = 'force-dynamic';
+
 const oauth2Client = new google.auth.OAuth2(
   process.env.NEXT_PUBLIC_GMAIL_CLIENT_ID,
   process.env.GMAIL_CLIENT_SECRET,
