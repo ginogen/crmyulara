@@ -1,16 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { signIn } = useAuth();
+  const { signIn, user } = useAuth();
+  const router = useRouter();
+
+  // Efecto para manejar la redirección cuando el usuario está autenticado
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +42,8 @@ export default function LoginPage() {
           setError('Ocurrió un error al iniciar sesión. Por favor, intente nuevamente.');
         }
       } else {
-        console.log('Login exitoso');
+        console.log('Login exitoso, esperando actualización de sesión...');
+        // La redirección será manejada por el useEffect cuando el usuario se actualice
       }
     } catch (error) {
       console.error('Error inesperado en login:', error);
