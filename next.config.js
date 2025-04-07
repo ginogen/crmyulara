@@ -16,12 +16,13 @@ const nextConfig = {
     // Ignorar errores de TS durante la construcción
     ignoreBuildErrors: true,
   },
-  experimental: {
-    serverActions: true,
-  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
+      "fs": false,
+      "net": false,
+      "tls": false,
+      "child_process": false,
       "https": require.resolve("https-browserify"),
       "http": require.resolve("stream-http"),
       "crypto": require.resolve("crypto-browserify"),
@@ -32,7 +33,18 @@ const nextConfig = {
       "buffer": require.resolve("buffer/"),
       "util": require.resolve("util/"),
       "path": require.resolve("path-browserify"),
+      "os": require.resolve("os-browserify/browser"),
+      "process": require.resolve("process/browser"),
     };
+
+    const webpack = require('webpack');
+    config.plugins.push(
+      new webpack.ProvidePlugin({
+        process: 'process/browser',
+        Buffer: ['buffer', 'Buffer'],
+      })
+    );
+
     return config;
   },
 };
