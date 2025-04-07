@@ -1,3 +1,5 @@
+// Comentado temporalmente para el deploy
+/*
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 
@@ -29,4 +31,5 @@ export async function GET(request: Request) {
     console.error('Error in Google callback:', error);
     return NextResponse.redirect('/auth/error?error=ServerError');
   }
-} 
+}
+*/ 
