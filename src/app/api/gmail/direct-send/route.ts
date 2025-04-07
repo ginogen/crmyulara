@@ -21,6 +21,8 @@ export async function OPTIONS() {
   });
 }
 
+// Comentado temporalmente para el deploy
+/*
 export async function POST(request: Request) {
   try {
     const session = await getServerSession(authOptions);
@@ -76,4 +78,5 @@ export async function POST(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
+*/ 

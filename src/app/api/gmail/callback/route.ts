@@ -1,3 +1,5 @@
+// Comentado temporalmente para el deploy
+/*
 import { NextResponse } from 'next/server';
 import { google } from 'googleapis';
 import { getServerSession } from 'next-auth';
@@ -36,4 +38,5 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
+*/ 
