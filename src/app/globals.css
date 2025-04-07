@@ -2,20 +2,193 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Estilos personalizados para el calendario */
+.fc {
+  @apply font-sans;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Botones del calendario */
+.fc .fc-button {
+  @apply bg-gradient-to-r from-red-500 to-red-600 border-0 shadow-sm text-white font-medium px-4 py-2 rounded-lg transition-all duration-200 hover:from-red-600 hover:to-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 !important;
+}
+
+.fc .fc-button-primary:not(:disabled).fc-button-active,
+.fc .fc-button-primary:not(:disabled):active {
+  @apply bg-gradient-to-r from-red-600 to-red-700 shadow-inner !important;
+}
+
+/* Título del toolbar */
+.fc .fc-toolbar-title {
+  @apply text-xl font-semibold text-gray-900 !important;
+}
+
+/* Cabecera de la tabla */
+.fc th {
+  @apply bg-white/50 backdrop-blur-sm text-gray-600 font-medium border-gray-200 !important;
+}
+
+/* Celdas del calendario */
+.fc td {
+  @apply border-gray-200 !important;
+}
+
+/* Día actual */
+.fc .fc-day-today {
+  @apply bg-red-50/50 backdrop-blur-sm !important;
+}
+
+/* Eventos */
+.fc-event {
+  @apply bg-gradient-to-r from-red-500 to-red-600 border-0 rounded-lg shadow-sm cursor-pointer transition-transform duration-200 hover:scale-[1.02] !important;
+}
+
+.fc-event-title {
+  @apply font-medium !important;
+}
+
+/* Hover en celdas */
+.fc td.fc-day:hover {
+  @apply bg-gray-50/50 transition-colors duration-200 cursor-pointer !important;
+}
+
+/* Números de día */
+.fc .fc-daygrid-day-number {
+  @apply text-gray-700 font-medium hover:text-red-600 transition-colors duration-200 !important;
+}
+
+/* Botón "más eventos" */
+.fc .fc-more-link {
+  @apply text-red-600 font-medium hover:text-red-700 !important;
+}
+
+/* Eventos en la vista de tiempo */
+.fc-timegrid-event {
+  @apply rounded-md shadow-sm !important;
+}
+
+/* Línea de tiempo actual */
+.fc .fc-timegrid-now-indicator-line {
+  @apply border-red-500 !important;
+}
+
+.fc .fc-timegrid-now-indicator-arrow {
+  @apply border-red-500 !important;
+}
+
+/* Estilos para el fondo del calendario */
+.fc .fc-view-harness {
+  @apply bg-white/50 backdrop-blur-sm rounded-lg !important;
+}
+
+/* Estilos base para formularios */
+@layer components {
+  .form-input {
+    @apply block w-full px-4 py-3 text-base text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm;
+    @apply focus:ring-2 focus:ring-red-500 focus:border-red-500;
+    @apply placeholder:text-gray-400;
+    @apply disabled:bg-gray-50 disabled:text-gray-500;
+    @apply hover:border-red-300 transition-colors duration-200;
+  }
+
+  .form-select {
+    @apply block w-full px-4 py-3 text-base text-gray-900 bg-white border border-gray-300 rounded-lg shadow-sm;
+    @apply focus:ring-2 focus:ring-red-500 focus:border-red-500;
+    @apply disabled:bg-gray-50 disabled:text-gray-500;
+    @apply hover:border-red-300 transition-colors duration-200;
+  }
+
+  .form-label {
+    @apply block mb-2 text-sm font-medium text-gray-900;
+  }
+
+  .form-error {
+    @apply mt-1 text-sm text-red-600 font-medium;
+  }
+
+  .form-hint {
+    @apply mt-1 text-sm text-gray-500;
+  }
+
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-button-primary {
+    @apply inline-flex justify-center px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg shadow-sm;
+    @apply hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply transition-colors duration-200;
+  }
+
+  .form-button-secondary {
+    @apply inline-flex justify-center px-4 py-2.5 text-sm font-medium text-gray-700 bg-white rounded-lg shadow-sm;
+    @apply border border-gray-300 hover:bg-gray-50 focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+    @apply disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply transition-colors duration-200;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

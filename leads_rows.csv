@@ -1,0 +1,2 @@
+id,created_at,inquiry_number,full_name,status,assigned_to,origin,province,phone,pax_count,estimated_travel_date,organization_id,branch_id,converted_to_contact
+3e767045-936a-4ebb-a99a-49871c4164e9,2025-03-19 17:36:18.271183+00,INQ-250319-908,Test,contacted,3c6d7374-8403-4bca-bb84-c937c4b5b94f,Referido,Bs As,234234324,2,2025-03-20,a244fe04-86e1-4f3a-8ab6-0d0540cbf4e3,ed3fa90f-1e1c-46fa-9a82-84f6f33fca5b,true

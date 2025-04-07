@@ -1,0 +1,6 @@
+{
+  "name": "send-scheduled-emails",
+  "schedule": "*/5 * * * *",
+  "function": "send-scheduled-emails",
+  "description": "Envía los correos electrónicos programados cada 5 minutos"
+} 
