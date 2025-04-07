@@ -1,3 +1,5 @@
+// Temporalmente comentado: Funcionalidad de Gmail
+/*
 import { useState, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
@@ -184,5 +186,17 @@ export function useGmail() {
     connectGmail,
     disconnectGmail,
     sendEmail,
+  };
+}
+*/
+
+// Exportar una versión mock del hook para mantener la compatibilidad
+export function useGmail() {
+  return {
+    isConnected: false,
+    isLoading: false,
+    connectGmail: () => {},
+    disconnectGmail: () => {},
+    sendEmail: () => Promise.resolve(),
   };
 } 

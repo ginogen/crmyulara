@@ -39,32 +39,26 @@ import {
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { ContactManagementModal } from '@/components/modals/ContactManagementModal';
-import { GmailConnectModal } from '@/components/modals/GmailConnectModal';
-import { EmailModal } from '@/components/modals/EmailModal';
 import { ContactTasksModal } from '@/components/modals/ContactTasksModal';
-import { useGmail } from '@/hooks/useGmail';
 import { WhatsAppModal } from '@/components/modals/WhatsAppModal';
 
 type UserRole = 'super_admin' | 'org_admin' | 'branch_manager' | 'sales_agent';
 
 export default function ContactsPage() {
   const { user, currentOrganization, currentBranch, userRole } = useAuth();
-  const { contacts, isLoading, error, createContact, updateContact } = useContacts();
+  const { contacts, isLoading, error, createContact, updateContact, deleteContact } = useContacts();
   const [filters, setFilters] = useState({
     name: '',
     city: '',
     tag: '',
     assignedTo: '',
   });
+  const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedContact, setSelectedContact] = useState<Contact | undefined>();
   const [isManagementModalOpen, setIsManagementModalOpen] = useState(false);
   const [isTasksModalOpen, setIsTasksModalOpen] = useState(false);
   const [agents, setAgents] = useState<Array<{ id: string; full_name: string }>>([]);
-  const [isGmailModalOpen, setIsGmailModalOpen] = useState(false);
-  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
-  const [selectedContacts, setSelectedContacts] = useState<Contact[]>([]);
-  const { isConnected: isGmailConnected } = useGmail();
   const [isWhatsAppModalOpen, setIsWhatsAppModalOpen] = useState(false);
   const [selectedContactForWA, setSelectedContactForWA] = useState<Contact | null>(null);
 
@@ -153,29 +147,6 @@ export default function ContactsPage() {
         <div className="sm:flex sm:items-center sm:justify-between">
           <h1 className="text-2xl font-semibold text-gray-900">Contactos</h1>
           <div className="flex gap-4">
-            <Button
-              variant={isGmailConnected ? "default" : "outline"}
-              onClick={() => setIsGmailModalOpen(true)}
-              className={`inline-flex items-center gap-x-2 ${
-                isGmailConnected ? "bg-green-600 hover:bg-green-700" : ""
-              }`}
-            >
-              <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
-              </svg>
-              {isGmailConnected ? "Gmail Conectado" : "Conectar Gmail"}
-            </Button>
-            {selectedContacts.length > 0 && (
-              <Button
-                onClick={() => setIsEmailModalOpen(true)}
-                className="inline-flex items-center gap-x-2"
-              >
-                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
-                </svg>
-                Enviar Email ({selectedContacts.length})
-              </Button>
-            )}
             <Button
               onClick={() => handleOpenModal()}
               className="inline-flex items-center gap-x-2"
@@ -423,17 +394,6 @@ export default function ContactsPage() {
           setSelectedContact(undefined);
         }}
         contactId={selectedContact?.id || ''}
-      />
-
-      <GmailConnectModal
-        isOpen={isGmailModalOpen}
-        onClose={() => setIsGmailModalOpen(false)}
-      />
-
-      <EmailModal
-        isOpen={isEmailModalOpen}
-        onClose={() => setIsEmailModalOpen(false)}
-        contacts={selectedContacts}
       />
 
       {selectedContactForWA && (

@@ -1,3 +1,5 @@
+// Temporalmente comentado: Modal de envío de emails
+/*
 import { useState, ChangeEvent } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -44,56 +46,75 @@ export function EmailModal({ isOpen, onClose, contacts }: EmailModalProps) {
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div>
-            <label className="text-sm font-medium">Para:</label>
-            <div className="mt-1 p-2 border rounded-md bg-gray-50">
-              {contacts.map(contact => (
-                <span key={contact.id} className="inline-block bg-blue-100 text-blue-800 rounded-full px-3 py-1 text-sm mr-2 mb-2">
-                  {contact.email}
-                </span>
-              ))}
+            <label htmlFor="to" className="block text-sm font-medium text-gray-700">
+              Para
+            </label>
+            <div className="mt-1">
+              <Input
+                id="to"
+                type="text"
+                value={contacts.map(c => c.email).join(', ')}
+                disabled
+              />
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium">Asunto:</label>
-            <Input
-              value={subject}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
-              placeholder="Ingrese el asunto"
-              className="mt-1"
-            />
+            <label htmlFor="subject" className="block text-sm font-medium text-gray-700">
+              Asunto
+            </label>
+            <div className="mt-1">
+              <Input
+                id="subject"
+                type="text"
+                value={subject}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setSubject(e.target.value)}
+                placeholder="Ingresa el asunto del correo"
+              />
+            </div>
           </div>
           <div>
-            <label className="text-sm font-medium">Mensaje:</label>
-            <Textarea
-              value={body}
-              onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.target.value)}
-              placeholder="Escriba su mensaje"
-              className="mt-1"
-              rows={6}
-            />
+            <label htmlFor="body" className="block text-sm font-medium text-gray-700">
+              Mensaje
+            </label>
+            <div className="mt-1">
+              <Textarea
+                id="body"
+                value={body}
+                onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setBody(e.target.value)}
+                placeholder="Escribe tu mensaje aquí"
+                rows={6}
+              />
+            </div>
           </div>
           <div>
-            <label className="text-sm font-medium">Programar envío (opcional):</label>
-            <Input
-              type="datetime-local"
-              value={scheduledFor}
-              onChange={(e: ChangeEvent<HTMLInputElement>) => setScheduledFor(e.target.value)}
-              className="mt-1"
-            />
+            <label htmlFor="scheduledFor" className="block text-sm font-medium text-gray-700">
+              Programar envío (opcional)
+            </label>
+            <div className="mt-1">
+              <Input
+                id="scheduledFor"
+                type="datetime-local"
+                value={scheduledFor}
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setScheduledFor(e.target.value)}
+              />
+            </div>
           </div>
-          <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={onClose}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleSend}
-              disabled={isSending || !subject || !body}
-            >
-              {isSending ? 'Enviando...' : 'Enviar'}
-            </Button>
-          </div>
+        </div>
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" onClick={onClose}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSend} disabled={isSending || !subject || !body}>
+            {isSending ? 'Enviando...' : 'Enviar'}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
   );
+}
+*/
+
+// Exportar un componente vacío para mantener la compatibilidad
+export function EmailModal() {
+  return null;
 } 

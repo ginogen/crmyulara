@@ -1,3 +1,5 @@
+// Temporalmente comentado: Ruta de envío de Gmail
+/*
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/client';
 import { google } from 'googleapis';
@@ -59,58 +61,62 @@ export async function POST(request: Request) {
     // Codificar el mensaje en base64
     const encodedMessage = Buffer.from(message).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+    // Si hay una fecha programada, guardar para envío posterior
     if (scheduled_for) {
-      // Guardar el correo programado en la base de datos
-      const { error: emailError } = await supabase
-        .from('emails')
+      const { error: scheduleError } = await supabase
+        .from('scheduled_emails')
         .insert({
           user_id: user.id,
-          contact_ids,
+          to_emails,
           subject,
           body: emailBody,
-          to_emails,
           scheduled_for,
-          status: 'scheduled',
-          direction: 'outbound',
+          contact_ids,
+          raw_message: encodedMessage
         });
 
-      if (emailError) {
+      if (scheduleError) {
         return NextResponse.json({ error: 'Error scheduling email' }, { status: 500 });
       }
 
       return NextResponse.json({ message: 'Email scheduled successfully' });
-    } else {
-      // Enviar el correo inmediatamente
-      const response = await gmail.users.messages.send({
-        userId: 'me',
-        requestBody: {
-          raw: encodedMessage,
-        },
+    }
+
+    // Enviar el correo inmediatamente
+    await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage
+      }
+    });
+
+    // Guardar el registro del correo enviado
+    const { error: historyError } = await supabase
+      .from('email_history')
+      .insert({
+        user_id: user.id,
+        to_emails,
+        subject,
+        body: emailBody,
+        contact_ids,
+        status: 'sent'
       });
 
-      // Guardar el correo enviado en la base de datos
-      const { error: emailError } = await supabase
-        .from('emails')
-        .insert({
-          user_id: user.id,
-          contact_ids,
-          subject,
-          body: emailBody,
-          to_emails,
-          sent_at: new Date().toISOString(),
-          status: 'sent',
-          direction: 'outbound',
-          message_id: response.data.id,
-        });
-
-      if (emailError) {
-        return NextResponse.json({ error: 'Error saving sent email' }, { status: 500 });
-      }
-
-      return NextResponse.json({ message: 'Email sent successfully', messageId: response.data.id });
+    if (historyError) {
+      console.error('Error saving email history:', historyError);
     }
+
+    return NextResponse.json({ message: 'Email sent successfully' });
   } catch (error) {
     console.error('Error sending email:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: 'Error sending email' }, { status: 500 });
   }
+}
+*/
+
+import { NextResponse } from 'next/server';
+
+// Exportar una función mock para mantener la compatibilidad
+export async function POST() {
+  return NextResponse.json({ error: 'Gmail functionality is temporarily disabled' }, { status: 503 });
 } 

@@ -1,3 +1,5 @@
+// Temporalmente comentado: Ruta de envío directo de Gmail
+/*
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
@@ -21,64 +23,26 @@ export async function OPTIONS() {
 
 export async function POST(request: Request) {
   try {
-    console.log('DirectSend: Iniciando proceso de envío directo de correo');
-    
-    // 1. Obtener el token de autenticación del usuario actual usando cookies
+    // 1. Obtener el usuario autenticado
     const cookieStore = cookies();
-    const supabase = createClient(cookieStore);
+    const supabase = getServerSupabase(cookieStore);
     
-    console.log('DirectSend: Obteniendo sesión del usuario...');
-    const { data: sessionData, error: authError } = await supabase.auth.getSession();
-    
-    if (authError) {
-      console.error('DirectSend: Error al obtener la sesión:', authError);
-      return NextResponse.json({ error: 'Error al obtener la sesión: ' + authError.message }, { status: 500 });
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('DirectSend: Error de autenticación', authError);
+      return NextResponse.json({ 
+        error: 'Usuario no autenticado' 
+      }, { status: 401 });
     }
     
-    let user = null;
-    let token = null;
-
-    // Si no hay sesión, intentar obtener el token de los encabezados
-    if (!sessionData?.session) {
-      console.log('DirectSend: No se encontró sesión en cookies, intentando encabezados...');
-      
-      const authHeader = request.headers.get('Authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        token = authHeader.replace('Bearer ', '');
-        
-        try {
-          // Verificar el token con Supabase
-          const { data: userData, error: userError } = await supabase.auth.getUser(token);
-          
-          if (userError || !userData.user) {
-            console.error('DirectSend: Token inválido:', userError);
-          } else {
-            console.log('DirectSend: Usuario encontrado por token en encabezados');
-            user = userData.user;
-          }
-        } catch (error) {
-          console.error('DirectSend: Error al verificar token:', error);
-        }
-      } else {
-        console.log('DirectSend: No se encontró encabezado de autorización');
-      }
-      
-      // Si aún no hay usuario, devolver error 401
-      if (!user) {
-        console.error('DirectSend: No se pudo autenticar al usuario por ningún medio');
-        return NextResponse.json({ 
-          error: 'No se encontró sesión de usuario. Por favor, inicia sesión nuevamente.' 
-        }, { status: 401 });
-      }
-    } else {
-      user = sessionData.session.user;
-      token = sessionData.session.access_token;
-      console.log('DirectSend: Sesión obtenida correctamente', { userId: user.id });
-    }
+    console.log('DirectSend: Usuario autenticado correctamente', {
+      userId: user.id,
+      email: user.email
+    });
     
-    // 2. Obtener los datos del correo electrónico
-    console.log('DirectSend: Leyendo datos del correo');
+    // 2. Leer y validar los datos del correo
     let emailData;
+    
     try {
       emailData = await request.json();
       console.log('DirectSend: Datos del correo leídos correctamente', {
@@ -157,156 +121,62 @@ export async function POST(request: Request) {
     
     // 6. Enviar correo
     console.log('DirectSend: Enviando correo');
-    try {
-      let sentMessage;
-      try {
-        const response = await gmail.users.messages.send({
-          userId: 'me',
-          requestBody: {
-            raw: encodedMessage,
-          },
-        });
-        sentMessage = response.data;
-      } catch (sendError: any) {
-        // Si el error es de autenticación, intentar refrescar el token
-        if (sendError.code === 401 || (sendError.response?.status === 401)) {
-          console.log('DirectSend: Token expirado, intentando refrescar...');
-          
-          try {
-            // Refrescar token de OAuth2
-            console.log('DirectSend: Intentando refrescar token con credenciales:', {
-              hasRefreshToken: !!credentials.refresh_token,
-              refreshTokenLength: credentials.refresh_token?.length || 0,
-              expiryDate: new Date(credentials.expiry_date).toISOString()
-            });
-
-            const { credentials: newTokens } = await oauth2Client.refreshAccessToken();
-            
-            console.log('DirectSend: Token refrescado:', {
-              hasNewAccessToken: !!newTokens.access_token,
-              newTokenLength: newTokens.access_token?.length || 0,
-              newExpiryDate: newTokens.expiry_date ? new Date(newTokens.expiry_date).toISOString() : 'N/A'
-            });
-
-            if (!newTokens.access_token) {
-              throw new Error('No se pudo obtener un nuevo token de acceso');
-            }
-            
-            // Actualizar credenciales en la base de datos
-            const { error: updateError } = await supabase
-              .from('gmail_credentials')
-              .update({
-                access_token: newTokens.access_token,
-                expiry_date: newTokens.expiry_date,
-              })
-              .eq('user_id', user.id);
-            
-            if (updateError) {
-              throw new Error('Error al actualizar credenciales: ' + updateError.message);
-            }
-            
-            // Actualizar cliente con nuevo token
-            oauth2Client.setCredentials({
-              ...newTokens,
-              refresh_token: credentials.refresh_token,
-            });
-            
-            // Reintentar envío con nuevo token
-            console.log('DirectSend: Reintentando envío con nuevo token...');
-            const retryResponse = await gmail.users.messages.send({
-              userId: 'me',
-              requestBody: {
-                raw: encodedMessage,
-              },
-            });
-            
-            sentMessage = retryResponse.data;
-          } catch (refreshError) {
-            console.error('DirectSend: Error detallado al refrescar token:', {
-              error: refreshError,
-              message: refreshError instanceof Error ? refreshError.message : String(refreshError),
-              stack: refreshError instanceof Error ? refreshError.stack : 'No stack trace available',
-              code: (refreshError as any)?.response?.status || (refreshError as any)?.code,
-              response: (refreshError as any)?.response?.data
-            });
-
-            // Si el error indica que el refresh token es inválido o ha expirado
-            if ((refreshError as any)?.response?.status === 400 || 
-                (refreshError as any)?.message?.includes('invalid_grant')) {
-              // Eliminar las credenciales inválidas
-              await supabase
-                .from('gmail_credentials')
-                .delete()
-                .eq('user_id', user.id);
-
-              throw new Error(
-                'Las credenciales de Gmail han expirado o han sido revocadas. ' +
-                'Por favor, vuelve a conectar tu cuenta de Gmail.'
-              );
-            }
-
-            throw new Error(
-              'Error al refrescar credenciales de Gmail: ' +
-              (refreshError instanceof Error ? refreshError.message : String(refreshError))
-            );
-          }
-        } else {
-          throw sendError;
-        }
-      }
-      
-      console.log('DirectSend: Correo enviado correctamente', {
-        messageId: sentMessage.id
-      });
-      
-      // 7. Guardar registro del correo enviado
-      console.log('DirectSend: Guardando registro del correo enviado');
-      const { error: saveError } = await supabase
-        .from('emails')
-        .insert({
-          user_id: user.id,
-          subject: subject,
-          body: body,
-          to_emails: to,
-          status: 'sent',
-          direction: 'outbound',
-          sent_at: new Date().toISOString(),
-          message_id: sentMessage.id,
-          thread_id: sentMessage.threadId,
-        });
-      
-      if (saveError) {
-        console.error('DirectSend: Error al guardar registro del correo enviado', saveError);
-        // No devolvemos error, ya que el correo se envió correctamente
-      }
-      
-      return NextResponse.json({
-        success: true,
-        message: 'Correo enviado correctamente',
-        messageId: sentMessage.id
-      });
-      
-    } catch (error) {
-      console.error('DirectSend: Error general', {
-        error: error,
-        message: error instanceof Error ? error.message : String(error),
-        stack: error instanceof Error ? error.stack : 'No stack available'
-      });
-      
-      return NextResponse.json({ 
-        error: 'Error interno del servidor: ' + (error instanceof Error ? error.message : String(error)) 
-      }, { status: 500 });
-    }
-    
-  } catch (error) {
-    console.error('DirectSend: Error general', {
-      error: error,
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : 'No stack available'
+    const response = await gmail.users.messages.send({
+      userId: 'me',
+      requestBody: {
+        raw: encodedMessage,
+      },
     });
     
+    console.log('DirectSend: Correo enviado correctamente', {
+      messageId: response.data.id
+    });
+    
+    // 7. Guardar registro del envío
+    console.log('DirectSend: Guardando registro del envío');
+    const { error: historyError } = await supabase
+      .from('email_history')
+      .insert({
+        user_id: user.id,
+        to_emails: to,
+        subject,
+        body,
+        status: 'sent',
+        message_id: response.data.id
+      });
+    
+    if (historyError) {
+      console.error('DirectSend: Error al guardar historial', historyError);
+    } else {
+      console.log('DirectSend: Historial guardado correctamente');
+    }
+    
     return NextResponse.json({ 
-      error: 'Error interno del servidor: ' + (error instanceof Error ? error.message : String(error)) 
+      message: 'Correo enviado correctamente',
+      messageId: response.data.id
+    });
+  } catch (error) {
+    console.error('DirectSend: Error general', error);
+    return NextResponse.json({ 
+      error: 'Error al enviar el correo' 
     }, { status: 500 });
   }
+}
+*/
+
+// Exportar funciones mock para mantener la compatibilidad
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}
+
+export async function POST() {
+  return new Response('Gmail functionality is temporarily disabled', { status: 503 });
 } 

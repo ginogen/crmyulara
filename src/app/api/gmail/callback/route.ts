@@ -1,3 +1,5 @@
+// Temporalmente comentado: Ruta de callback de Gmail
+/*
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/client';
 import { google } from 'googleapis';
@@ -58,4 +60,10 @@ export async function GET(request: Request) {
     console.error('Error in Gmail callback:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
+}
+*/
+
+// Exportar una función mock para mantener la compatibilidad
+export async function GET() {
+  return new Response('Gmail functionality is temporarily disabled', { status: 503 });
 } 

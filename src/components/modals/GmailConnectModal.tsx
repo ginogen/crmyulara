@@ -1,3 +1,5 @@
+// Temporalmente comentado: Modal de conexión de Gmail
+/*
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { useGmail } from "@/hooks/useGmail";
@@ -51,4 +53,10 @@ export function GmailConnectModal({ isOpen, onClose }: GmailConnectModalProps) {
       </DialogContent>
     </Dialog>
   );
+}
+*/
+
+// Exportar un componente vacío para mantener la compatibilidad
+export function GmailConnectModal() {
+  return null;
 } 
