@@ -35,6 +35,7 @@ const nextConfig = {
       "path": require.resolve("path-browserify"),
       "os": require.resolve("os-browserify/browser"),
       "process": require.resolve("process/browser"),
+      "querystring": require.resolve("querystring-es3"),
     };
 
     const webpack = require('webpack');
