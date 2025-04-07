@@ -1,128 +1,111 @@
-import { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
-import { useAuth } from '@/contexts/AuthContext';
+// Comentado temporalmente para el deploy
+/*
+import { useEffect, useState } from 'react';
+import { useSupabase } from './useSupabase';
+import { useSession } from 'next-auth/react';
 
 export interface GmailToken {
   access_token: string;
   refresh_token: string;
-  expiry_date: number;
   scope: string;
+  token_type: string;
+  expiry_date: number;
 }
 
 export function useGmail() {
+  const { supabase } = useSupabase();
+  const { data: session } = useSession();
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
-  const supabase = createClient();
+
+  const checkGmailConnection = async () => {
+    try {
+      if (!session?.user?.id) {
+        setIsConnected(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('gmail_credentials')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .single();
+
+      if (error) {
+        console.error('Error checking Gmail connection:', {
+          error,
+          userId: session.user.id,
+        });
+        setIsConnected(false);
+        return;
+      }
+
+      setIsConnected(!!data);
+    } catch (error) {
+      console.error('Error checking Gmail connection:', {
+        error,
+        userId: session?.user?.id,
+      });
+      setIsConnected(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const checkGmailConnection = async () => {
-      if (!user?.id) return;
-
-      try {
-        const { data, error } = await supabase
-          .from('gmail_credentials')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (error) {
-          if (error.code === 'PGRST116') {
-            setIsConnected(false);
-            setIsLoading(false);
-            return;
-          }
-          
-          console.error('Error checking Gmail connection:', {
-            message: error.message,
-            details: error.details,
-            hint: error.hint,
-            code: error.code
-          });
-          return;
-        }
-
-        setIsConnected(!!data);
-      } catch (error) {
-        console.error('Error checking Gmail connection:', {
-          name: error instanceof Error ? error.name : 'Unknown',
-          message: error instanceof Error ? error.message : String(error)
-        });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     checkGmailConnection();
-  }, [user?.id]);
+  }, [session?.user?.id]);
 
   const connectGmail = async () => {
     try {
-      const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+      setIsLoading(true);
 
-      if (!clientId) {
-        throw new Error(
-          'Error de configuración: NEXT_PUBLIC_GOOGLE_CLIENT_ID no está configurado. ' +
-          'Por favor, configura esta variable de entorno en tu archivo .env.local'
-        );
-      }
-
-      if (!user?.id) {
+      // Verificar si el usuario está autenticado
+      if (!session?.user?.id) {
         throw new Error('Debes iniciar sesión antes de conectar Gmail');
       }
 
-      const redirectUri = `${siteUrl}/api/auth/google/callback`;
+      // Configurar los parámetros de OAuth
       const scope = 'https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.readonly';
-      
-      console.log('Configuración de Gmail:');
-      console.log('- Client ID:', clientId.substring(0, 20) + '...');
-      console.log('- Redirect URI:', redirectUri);
-      console.log('- Scope:', scope);
-      
-      const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-      authUrl.searchParams.append('client_id', clientId);
-      authUrl.searchParams.append('redirect_uri', redirectUri);
-      authUrl.searchParams.append('response_type', 'code');
-      authUrl.searchParams.append('scope', scope);
-      authUrl.searchParams.append('access_type', 'offline');
-      authUrl.searchParams.append('prompt', 'consent');
-      
-      console.log('Redirigiendo a:', authUrl.toString());
-      
-      // Agregar un manejador para detectar si la URL contiene un error
-      const handleRedirectError = () => {
-        const currentUrl = new URL(window.location.href);
-        const error = currentUrl.searchParams.get('error');
-        if (error === 'access_denied') {
-          throw new Error(
-            'Acceso denegado: Esta aplicación está en modo de prueba. ' +
-            'Por favor, contacta al administrador para que agregue tu correo como usuario de prueba en Google Cloud Console.'
-          );
-        }
-      };
 
-      // Verificar si ya hay un error en la URL actual
-      handleRedirectError();
-      
-      window.location.href = authUrl.toString();
+      // Log de la configuración para debugging
+      console.log('Configuración de Gmail:', {
+        clientId: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
+        redirectUri: `${window.location.origin}/api/auth/google/callback`,
+        scope,
+      });
+
+      // Construir la URL de autorización
+      const params = new URLSearchParams({
+        client_id: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '',
+        redirect_uri: `${window.location.origin}/api/auth/google/callback`,
+        response_type: 'code',
+        scope,
+        access_type: 'offline',
+        prompt: 'consent',
+      });
+
+      // Redirigir al usuario a la página de autorización de Google
+      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
     } catch (error) {
       console.error('Error al iniciar la conexión con Gmail:', error);
-      if (error instanceof Error) {
-        throw error;
-      }
+      setIsLoading(false);
+
+      // Propagar el error para que pueda ser manejado por el componente
       throw new Error('No se pudo iniciar la conexión con Gmail. Por favor, verifica la configuración.');
     }
   };
 
   const disconnectGmail = async () => {
-    if (!user?.id) return;
-
     try {
+      setIsLoading(true);
+
+      if (!session?.user?.id) return;
+
       const { error } = await supabase
         .from('gmail_credentials')
         .delete()
-        .eq('user_id', user.id);
+        .eq('user_id', session.user.id);
 
       if (error) throw error;
 
@@ -130,6 +113,8 @@ export function useGmail() {
     } catch (error) {
       console.error('Error disconnecting Gmail:', error);
       throw error;
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -137,43 +122,31 @@ export function useGmail() {
     to,
     subject,
     body,
-    scheduledFor,
   }: {
-    to: string[];
+    to: string;
     subject: string;
     body: string;
-    scheduledFor?: Date;
   }) => {
-    if (!user?.id) throw new Error('Usuario no autenticado');
-
     try {
-      const { data, error } = await supabase.functions.invoke('send-email', {
-        body: {
+      const response = await fetch('/api/gmail/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           to,
           subject,
           body,
-          scheduledFor: scheduledFor?.toISOString(),
-        },
+        }),
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error('Error al enviar el correo');
+      }
 
-      // Guardar el email enviado en la base de datos
-      const { error: saveError } = await supabase.from('emails').insert({
-        user_id: user.id,
-        to: to.join(', '),
-        subject,
-        body,
-        scheduled_for: scheduledFor,
-        status: scheduledFor ? 'scheduled' : 'sent',
-        direction: 'outbound',
-      });
-
-      if (saveError) throw saveError;
-
-      return data;
+      return await response.json();
     } catch (error) {
-      console.error('Error sending email:', error);
+      console.error('Error al enviar el correo:', error);
       throw error;
     }
   };
@@ -184,5 +157,17 @@ export function useGmail() {
     connectGmail,
     disconnectGmail,
     sendEmail,
+  };
+}
+*/
+
+// Exportamos una versión temporal del hook que no hace nada
+export function useGmail() {
+  return {
+    isConnected: false,
+    isLoading: false,
+    connectGmail: () => Promise.resolve(),
+    disconnectGmail: () => Promise.resolve(),
+    sendEmail: () => Promise.resolve({}),
   };
 } 
